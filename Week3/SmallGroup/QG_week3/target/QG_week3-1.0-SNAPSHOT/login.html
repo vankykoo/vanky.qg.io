@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+
+</head>
+<body>
+
+<script src="https://code.jquery.com/jquery-3.6.4.js"></script>
+
+<form method="post" id="formdata" class="User">
+    用户名<input type="text" id="userName" name="userName"><br>
+    密码<input type="password" id="password" name="password"><br>
+    <input type="button" id="submit-btn"  value="发送">
+
+  <script>
+
+      document.getElementById("submit-btn").onclick = function () {
+          $.ajax({
+              type:'post',
+              //tomcat8
+              url:'http://localhost/QG_week3_war/user/login',
+              //tomcat7
+              //url:'http://localhost:8080/QG_week3/user/login',
+              async:true,
+              //form表单内容在ajax发送，需要序列化   $('#formdata').serialize()
+              data:$('#formdata').serialize(),
+              dataType:'json',
+              success:function (resp){
+                    if (resp.status == 200) {
+                        alert(resp.msg);
+                    }
+              },
+              error:function (err){
+                  alert("登录失败,用户不存在");
+              },
+              timeout:3000
+          })
+      }
+
+
+
+
+
+  </script>
+</form>
+</body>
+</html>

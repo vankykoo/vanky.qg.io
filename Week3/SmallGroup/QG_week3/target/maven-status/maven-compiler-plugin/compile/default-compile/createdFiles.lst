@@ -1,0 +1,7 @@
+com\qg\web\servlet\UserServlet.class
+com\qg\service\UserService.class
+com\qg\pojo\User.class
+com\qg\service\implement\UserServiceImp.class
+com\qg\mapper\UserMapper.class
+com\qg\util\SqlSessionFactoryUtils.class
+com\qg\web\servlet\BasicServlet.class
