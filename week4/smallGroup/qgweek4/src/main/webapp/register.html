@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+
+<div id="app">
+    <el-form ref="user" :rules="rules" :model="user" label-width="100px">
+
+        <el-form-item label="用户名" prop="userName">
+            <el-col :span="5">
+                <el-input v-model="user.userName" maxlength="16"></el-input>
+            </el-col>
+        </el-form-item>
+
+        <el-form-item label="密码" prop="password">
+            <el-col :span="5">
+                <el-input type="password" v-model="user.password"  maxlength="16" show-password></el-input>
+            </el-col>
+        </el-form-item>
+
+        <el-form-item label="验证码" prop="checkCode">
+            <el-col :span="5">
+                <el-input v-model="checkCode" placeholder="请输入验证码"></el-input>
+            </el-col>
+        </el-form-item>
+
+        <el-image
+                style="width: 100px; height: 50px"
+                :src="url"
+                :fit="fit"></el-image>
+
+        <el-link type="primary" @click="imgChange">看不清，换一张</el-link>
+
+<!--        <el-image-->
+<!--                style="width: 100px; height: 50px"-->
+<!--                :src="url"-->
+<!--                :fit="fit"></el-image>-->
+
+        <el-form-item>
+            <el-button type="primary" @click="submitForm('user')">立即创建</el-button>
+            <el-button @click="resetForm('user')">重置</el-button>
+        </el-form-item>
+    </el-form>
+
+</div>
+
+<script src="js/vue.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+    new Vue({
+        el:"#app",
+        mounted: function () {
+            axios.get("http://localhost/qgweek4/user/checkCode", {
+                headers: {
+                    'Content-Type': 'application/json;charset=UTF-8'
+                }
+            })
+        },
+        methods:{
+            onSubmit() {
+                var _this = this;
+                var thisUser = this.user;
+                axios({
+                    method:"post",
+                    url:"http://localhost/qgweek4/user/select",
+                    data: {
+                        user:this.user,
+                        checkCode: this.checkCode
+                    }
+                }).then(resp =>{
+                    if(resp.data == "success"){
+                        this.add(thisUser);
+                    }else if(resp.data == "checkCodeError"){
+                        this.$message({
+                            showClose: true,
+                            message: '验证码错误！',
+                            type: 'error'
+                        });
+                        _this.checkCode = '';
+                        _this.imgChange();
+                    } else{
+                        this.$message({
+                            showClose: true,
+                            message: '注册失败，用户已存在',
+                            type: 'error'
+                        })
+                        this.resetForm('user');
+                    }
+                })
+            },
+
+            add(userData){
+                axios({
+                    method: "post",
+                    url:'http://localhost/qgweek4/user/add',
+                    data:userData
+                }).then(resp =>{
+                    if(resp.data == "success"){
+                        this.$message({
+                            showClose: true,
+                            message: '恭喜你，注册成功',
+                            type: 'success'
+                        })
+                        this.resetForm('user');
+                        this.imgChange();
+                    }
+                })
+            },
+
+            imgChange(){
+                this.url = "http://localhost/qgweek4/user/checkCode?" + new Date().getMilliseconds();
+            },
+
+            submitForm(formName) {
+                var _this = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        _this.onSubmit();
+                    } else {
+                        return false;
+                    }
+                });
+            },
+
+            resetForm(formName) {
+                this.imgChange();
+                this.$refs[formName].resetFields();
+                this.checkCode = ''
+            }
+
+        },
+
+        data(){
+            return{
+                rules:{
+                    userName:[
+                        { required: true, message: '请输入用户名', trigger: 'blur' },
+                        { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' }
+                    ],
+                    password:[
+                        { required: true, message: '请输入密码', trigger: 'click' },
+                        { min: 8, max: 16, message: '长度在 8 到 16 位', trigger: 'blur' }
+                    ]
+                },
+                user:{
+                    userName:'',
+                    password:'',
+                    id:''
+                },
+                checkCode:'',
+
+                url:"http://localhost/qgweek4/user/checkCode",
+                fits: ['scale-down'],
+            }
+        }
+    })
+</script>
+
+</body>
+</html>

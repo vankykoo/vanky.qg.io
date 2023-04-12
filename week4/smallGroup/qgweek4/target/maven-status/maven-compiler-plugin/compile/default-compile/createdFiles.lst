@@ -1,0 +1,8 @@
+com\qg\web\UserServlet.class
+com\qg\service\UserService.class
+com\qg\web\BasicServlet.class
+com\qg\util\CheckCodeUtil.class
+com\qg\pojo\User.class
+com\qg\service\UserServiceImpl.class
+com\qg\mapper\UserMapper.class
+com\qg\util\SqlSessionFactoryUtils.class
