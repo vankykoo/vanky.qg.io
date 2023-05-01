@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>tourist</title>
+</head>
+<body>
+
+<div id="goods">
+  <h3>游客权限
+    <el-link type="primary" href="http://localhost/qg/login.html">未登录，请登录</el-link>
+  </h3>
+
+  <template>
+    <el-tabs :tab-position="tabPosition" style="height: 670px;">
+
+      <el-tab-pane label="商品">
+
+        <el-row>
+          <el-col :span="8">
+            <!--搜索表单-->
+            <el-form :inline="true" :model="selectGoodsData" class="demo-form-inline">
+              <el-form-item label="商品搜索">
+                <el-input v-model="selectGoodsData.goodsName" placeholder="商品名称"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="selectGoodsByName">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </el-col>
+
+          <el-col :span="8" align="right">
+            <!--按店名搜索-->
+            <el-form :inline="true" :model="selectByStoreNameData" class="demo-form-inline">
+              <el-form-item label="商品搜索">
+                <el-input v-model="selectByStoreNameData.storeName" placeholder="店铺名称"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="selectGoodsByStoreName">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </el-col>
+        </el-row>
+
+        <!--商品信息-->
+        <template>
+          <el-table
+                  :data="goodsData"
+                  style="width: 100%"
+                  height="600">
+            <el-table-column
+                    prop="goodsName"
+                    label="名称"
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    label="图片"
+                    align="center"
+                    width="200">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.goodsPicture" :preview-src-list="[scope.row.goodsPicture]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="goodsPrice"
+                    label="价格"
+                    sortable
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    prop="inventory"
+                    label="库存"
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    prop="monthlySales"
+                    label="月销量"
+                    sortable
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <!--查看评论-->
+            <el-table-column
+                    prop="comment"
+                    label="评论"
+                    align="center"
+                    width="150">
+              <template slot-scope="scope">
+                <el-button type="primary" @click="selectComment(scope.$index, scope.row)">查看评论</el-button>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="goodsDescription"
+                    label="商品介绍"
+                    align="center"
+                    width="300">
+            </el-table-column>
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="400">
+              <template slot-scope="scope">
+                <el-button
+                        @click.native.prevent="goToStore(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  进入店铺
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="addToCart(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  加入购物车
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="buyNow(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  立即购买
+                </el-button>
+
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane>  <!--商品标签-->
+
+      <el-tab-pane label="店铺">
+        <!--搜索表单-->
+        <el-form :inline="true" :model="selectStoreData" class="demo-form-inline">
+          <el-form-item label="店铺搜索">
+            <el-input v-model="selectStoreData.storeName" placeholder="店铺名称"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="selectStoresByName">查询</el-button>
+          </el-form-item>
+        </el-form>
+
+        <!--店铺信息-->
+        <template>
+          <el-table
+                  :data="storeData"
+                  style="width: 100%"
+                  height="620">
+
+            <el-table-column
+                    label="Logo"
+                    align="center"
+                    width="300">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.storeLogo" :preview-src-list="[scope.row.storeLogo]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="storeName"
+                    label="店铺名称"
+                    align="center"
+                    width="400">
+            </el-table-column>
+
+            <el-table-column
+                    prop="storeAddress"
+                    label="发货地址"
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="400">
+              <template slot-scope="scope">
+                <el-button
+                        @click.native.prevent="goToStore(scope.$index, scope.row)"
+                        type="primary">
+                  进入店铺
+                </el-button>
+
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane>  <!--店铺标签-->
+    </el-tabs>
+  </template>
+
+  <!--查看评论对话框-->
+  <el-dialog title="查看评论" :visible.sync="commentVisible">
+    <el-table
+            :data="commentsData"
+            height="250">
+      <el-table-column property="grade" sortable width="100" label="评分" align="center"></el-table-column>
+      <el-table-column property="description" label="文字评论" align="center"></el-table-column>
+    </el-table>
+  </el-dialog>
+
+</div>
+
+<!--插件-->
+<script src="js/Vue.js"></script>
+<script src="element-ui/index.js"></script>
+<link rel="stylesheet" href="element-ui/theme-chalk/index.css">
+<script src="js/axios-0.18.0.js"></script>
+
+
+<script>
+  new Vue({
+    el:"#goods",
+    mounted: function () {
+      setTimeout(() => {
+        this.selectAllGoods();
+        this.selectAllStores();
+      }, 100);
+    },
+
+    methods:{
+      selectAllGoods(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectAllGoods",
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      //查看商店
+      selectAllStores(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/store/selectAllStores",
+        }).then(response =>{
+          //表格记录
+          this.storeData = response.data;
+        })
+      },
+
+      // 查找
+      selectGoodsByName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectGoodsByName",
+          data: {
+            goodsName:this.selectGoodsData.goodsName}
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      //店铺名查找商品
+      selectGoodsByStoreName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectGoodsByStoreName",
+          data: {
+            storeName:this.selectByStoreNameData.storeName}
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      //店铺搜索
+      selectStoresByName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/store/selectStoresByName",
+          data: {
+            storeName:this.selectStoreData.storeName}
+        }).then(response =>{
+          //表格记录
+          this.storeData = response.data;
+        })
+      },
+
+      //进入店铺
+      goToStore(index, rows){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectByStoreId",
+          data:{
+            storeId:rows.storeId
+          }
+        }).then(response =>{
+
+          this.goodsData = [];
+          this.goodsData = response.data;
+
+        })
+      },
+
+      //单品立即购买
+      buyNow(index, rows){
+        this.$message({
+          message: '请先完成登录!',
+          type: 'warning'
+        });
+      },
+      // 加入购物车
+      addToCart(index, rows){
+        this.$message({
+          message: '请先完成登录!',
+          type: 'warning'
+        });
+      },
+      //查看评论
+      selectComment(index,rows){
+        axios({
+          method: "post",
+          url: "http://localhost/qg/comment/selectCommentByGoodsId",
+          data: {
+            goodsId:rows.goodsId
+          }
+        }).then(response => {
+          if (response.data == "success"){
+            this.commentsData = response.data;
+            setTimeout(() => {
+              this.commentVisible = true;
+            }, 50);
+          }
+        })
+      }
+    },
+    data(){
+      return{
+        //标签位置
+        tabPosition: 'left',
+        //商品信息
+        goods:{
+          goodsName:'',
+          goodsPicture:'',
+          monthlySales:0,
+          goodsState:'',
+          goodsPrice:'',
+          inventory:'',
+          isPurchased:0,
+          goodsDescription:'',
+          storeId:0
+        },
+        //评论信息
+        commentsData:[],
+
+        //商品列表内容
+        goodsData:[],
+
+        //店铺信息
+        store:{
+          storeLogo:'',
+          storeName:'',
+          storeAddress:'',
+          storeId:''
+        },
+        storeData:[],
+
+        //查询信息
+        selectGoodsData: {
+          goodsName: ''
+        },
+        selectStoreData: {
+          storeName: ''
+        },
+        selectByStoreNameData:{
+          storeName:''
+        },
+        //查询对话框
+        commentVisible: false,
+
+      }
+    }
+
+  })
+</script>
+
+
+</body>
+</html>

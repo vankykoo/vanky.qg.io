@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ordinaryUsers</title>
+</head>
+<body>
+
+<div id="goods">
+
+  <el-row>
+    <el-col :span="12">
+      <h3>你好，{{ user.userName }}~</h3>
+    </el-col>
+
+    <el-col :span="12" align="right">
+      <el-button @click="logout" type="danger" align="right">退出登录</el-button>
+    </el-col>
+  </el-row>
+
+
+  <template>
+    <el-tabs :tab-position="tabPosition" style="height: 670px;">
+
+      <el-tab-pane label="商品">
+        <el-row>
+          <el-col :span="8">
+            <!--搜索表单-->
+            <el-form :inline="true" :model="selectGoodsData" class="demo-form-inline">
+              <el-form-item label="商品搜索">
+                <el-input v-model="selectGoodsData.goodsName" placeholder="商品名称"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="selectGoodsByName">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </el-col>
+
+          <el-col :span="8" align="right">
+            <!--按店名搜索-->
+            <el-form :inline="true" :model="selectByStoreNameData" class="demo-form-inline">
+              <el-form-item label="商品搜索">
+                <el-input v-model="selectByStoreNameData.storeName" placeholder="店铺名称"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="selectGoodsByStoreName">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </el-col>
+        </el-row>
+
+        <!--商品信息-->
+        <template>
+          <el-table
+                  :data="goodsData"
+                  style="width: 100%; height: 100%"
+                  height="620">
+            <el-table-column
+                    prop="goodsName"
+                    label="名称"
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    label="图片"
+                    align="center"
+                    width="200">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.goodsPicture" :preview-src-list="[scope.row.goodsPicture]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="goodsPrice"
+                    label="价格"
+                    sortable
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    prop="inventory"
+                    label="库存"
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    prop="monthlySales"
+                    label="月销量"
+                    sortable
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <!--查看评论-->
+            <el-table-column
+                    prop="comment"
+                    label="评论"
+                    align="center"
+                    width="150">
+              <template slot-scope="scope">
+                <el-button type="primary" @click="selectComment(scope.$index, scope.row)">查看评论</el-button>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="goodsDescription"
+                    label="商品介绍"
+                    align="center"
+                    width="300">
+            </el-table-column>
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="400">
+              <template slot-scope="scope">
+                <el-button
+                        @click.native.prevent="goToStore(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  进入店铺
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="addToCart(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  加入购物车
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="buyNow(scope.$index, scope.row, 1)"
+                        type="primary"
+                        size="small">
+                  立即购买
+                </el-button>
+
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane>  <!--商品标签-->
+
+      <el-tab-pane label="店铺">
+        <!--搜索表单-->
+        <el-form :inline="true" :model="selectStoreData" class="demo-form-inline">
+          <el-form-item label="店铺搜索">
+            <el-input v-model="selectStoreData.storeName" placeholder="店铺名称"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="selectStoresByName">查询</el-button>
+          </el-form-item>
+        </el-form>
+
+        <!--店铺信息-->
+        <template>
+          <el-table
+                  :data="storeData"
+                  height="600">
+
+            <el-table-column
+                    label="Logo"
+                    align="center"
+                    width="300">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.storeLogo" :preview-src-list="[scope.row.storeLogo]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="storeName"
+                    label="店铺名称"
+                    align="center"
+                    width="400">
+            </el-table-column>
+
+            <el-table-column
+                    prop="storeAddress"
+                    label="发货地址"
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="400">
+              <template slot-scope="scope">
+                <el-button
+                        @click.native.prevent="goToStore(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  进入店铺
+                </el-button>
+
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane>  <!--店铺标签-->
+
+      <el-tab-pane label="购物车">
+        <template>
+          <el-table
+                  ref="multipleTable"
+                  :data="cartData"
+                  tooltip-effect="dark"
+                  height="600"
+                  @selection-change="cartSelectionChange">
+            <el-table-column
+                    type="selection"
+                    width="55">
+            </el-table-column>
+
+            <el-table-column
+                    prop="goodsName"
+                    label="名称"
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    label="图片"
+                    align="center"
+                    width="200">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.goodsPicture" :preview-src-list="[scope.row.goodsPicture]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="goodsPrice"
+                    label="价格"
+                    sortable
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    prop="inventory"
+                    label="库存"
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <el-table-column
+                    prop="monthlySales"
+                    label="月销量"
+                    sortable
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <!--查看评论-->
+            <el-table-column
+                    prop="comment"
+                    label="评论"
+                    align="center"
+                    width="150">
+              <template slot-scope="scope">
+                <el-button type="primary" @click="selectComment(scope.$index, scope.row)">查看评论</el-button>
+              </template>
+            </el-table-column>
+
+            <!--店铺-->
+            <el-table-column
+                    prop="storeName"
+                    label="店铺"
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="300">
+              <template slot-scope="scope">
+                <el-button
+                        @click.native.prevent="goToStore(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  进入店铺
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="buyNow(scope.$index, scope.row, 2)"
+                        type="primary"
+                        size="small">
+                  立即购买
+                </el-button>
+
+              </template>
+            </el-table-column>
+
+          </el-table>
+          <div style="margin-top: 20px">
+            <el-button @click="buyGoodsByIds" type="success">购买</el-button>
+            <el-button @click="deleteFromCartByIds" type="warning">移出购物车</el-button>
+          </div>
+        </template>
+      </el-tab-pane><!--购物车-->
+
+      <el-tab-pane label="通知栏">
+
+        <template>
+          <el-table
+                  :data="noticeData"
+                  style="width: 100%; height: 100%"
+                  height="650">
+            <el-table-column
+                    prop="noticeTime"
+                    label="通知时间"
+                    sortable
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    prop="noticeContent"
+                    label="通知内容"
+                    align="center"
+                    width="600">
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane><!--通知栏-->
+
+      <el-tab-pane label="我的订单">
+        <template>
+
+          <el-button @click="clearFilter">显示所有订单</el-button>
+
+          <el-table
+                  ref="orderFilterTable"
+                  :data="orderData"
+                  height="620"
+                  tooltip-effect="dark"
+                  style="width: 100%; height: 100%">
+
+            <!--下单时间-->
+            <el-table-column
+                    prop="orderTime"
+                    label="下单时间"
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    prop="goodsName"
+                    label="名称"
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    label="图片"
+                    align="center"
+                    width="200">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.goodsPicture" :preview-src-list="[scope.row.goodsPicture]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <!--收货地址-->
+            <el-table-column
+                    prop="customerPlace"
+                    label="收货地址"
+                    align="center"
+                    width="250">
+            </el-table-column>
+
+            <!--发货地址-->
+            <el-table-column
+                    prop="storeAddress"
+                    label="发货地址"
+                    align="center"
+                    width="250">
+            </el-table-column>
+
+            <!--商品状态-->
+            <el-table-column
+                    prop="orderStateStr"
+                    fixed="right"
+                    label="商品状态"
+                    width="150"
+                    column-key="orderStateStr"
+                    :filters="[{text: '待发货', value: '待发货'},
+                    {text: '待收货', value: '待收货'},
+                    {text: '退货/售后', value: '退货/售后'},
+                    {text: '待评价', value: '待评价'},
+                    {text: '已完成', value: '已完成'}]"
+                    :filter-method="filterHandler">
+            </el-table-column>
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="400">
+              <template slot-scope="scope">
+
+                <el-button
+                        @click.native.prevent="confirmReceipt(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  确认收货
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="remarkTag(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  评论
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="applyServiceAfterSales(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  售后
+                </el-button>
+
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane><!--我的订单-->
+
+      <el-tab-pane label="我的申请">
+        <template>
+          <el-button @click="clearFilter">清除所有过滤器</el-button>
+          <el-table
+                  ref="filterTable"
+                  :data="applications"
+                  height="650"
+                  style="width: 100%">
+            <el-table-column
+                    prop="applicationDate"
+                    align="center"
+                    label="日期"
+                    sortable
+                    width="200">
+            </el-table-column>
+            <el-table-column
+                    prop="applicationTypeStr"
+                    align="center"
+                    label="申请类型"
+                    width="180">
+            </el-table-column>
+            <el-table-column
+                    label="图片"
+                    align="center"
+                    width="250">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.applicationPic" :preview-src-list="[scope.row.applicationPic]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    align="center"
+                    label="名称"
+                    width="250">
+            </el-table-column>
+
+            <el-table-column
+                    prop="description"
+                    align="center"
+                    label="描述"
+                    width="450">
+            </el-table-column>
+            <el-table-column
+                    prop="applicationStateStr"
+                    align="center"
+                    fixed="right"
+                    label="审核状态"
+                    width="100"
+                    :filters="[{ text: '审核中', value: '审核中' }, { text: '审核通过', value: '审核通过' }, { text: '审核未通过', value: '审核未通过' }]"
+                    :filter-method="filterTag"
+                    filter-placement="bottom-end">
+            </el-table-column>
+          </el-table>
+        </template>
+      </el-tab-pane><!--我的申请-->
+
+      <el-tab-pane label="个人信息">
+
+        <el-button type="primary" @click="openStoreVisible = true">我想开店</el-button>
+        <el-button type="primary" @click="editDataVisible = true">修改资料</el-button>
+
+        <el-descriptions title="个人资料" direction="vertical" :column="4" border>
+
+          <el-descriptions-item label="头像">
+            <el-image style="width: 60px; height: 60px" :src="user.userPicture" :preview-src-list="[user.userPicture]">
+              <div slot="error" class="image-slot">
+                <img src="https://img.zcool.cn/community/01a3865ab91314a8012062e3c38ff6.png@1280w_1l_2o_100sh.png" alt="默认图片">
+              </div>
+            </el-image>
+          </el-descriptions-item>
+
+          <el-descriptions-item label="用户名">{{ user.userName }}</el-descriptions-item>
+          <el-descriptions-item label="手机号">{{ user.phoneNumber }}</el-descriptions-item>
+          <el-descriptions-item label="用户身份">{{ user.identity }}</el-descriptions-item>
+          <el-descriptions-item label="收货地址">{{ user.userAddress }}</el-descriptions-item>
+
+        </el-descriptions>
+      </el-tab-pane><!--个人信息-->
+
+    </el-tabs>
+  </template>
+
+  <!--查看评论对话框-->
+  <el-dialog title="查看评论" :visible.sync="commentVisible">
+    <el-table
+            :data="commentsData"
+            height="250">
+      <el-table-column property="grade" sortable width="100" label="评分" align="center"></el-table-column>
+      <el-table-column property="description" label="文字评论" align="center"></el-table-column>
+    </el-table>
+  </el-dialog>
+
+  <!--评论表单-->
+  <el-dialog title="商品评论" :visible.sync="remarkVisible">
+
+    <el-form :model="remarkData" :rules="rulesOfRemark" ref="remarkData" label-width="100px" class="demo-ruleForm">
+
+      <el-form-item label="评分" prop="grade">
+        <el-select v-model="remarkData.grade" placeholder="评分(1-5)">
+          <el-option label="1分" value="1"></el-option>
+          <el-option label="2分" value="2"></el-option>
+          <el-option label="3分" value="3"></el-option>
+          <el-option label="4分" value="4"></el-option>
+          <el-option label="5分" value="5"></el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="评论内容" :label-width="formLabelWidth" prop="description">
+        <el-input
+                type="textarea"
+                :rows="3"
+                placeholder="请输入评论内容"
+                v-model="remarkData.description">
+        </el-input>
+      </el-form-item>
+
+    </el-form>
+
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="remarkVisible = false">取 消</el-button>
+      <el-button type="primary" @click="remarkSubmitForm('remarkData')">提交评论</el-button>
+    </div>
+  </el-dialog>
+
+  <!--立即购买对话框-->
+  <el-dialog title="立即购买" :visible.sync="buyNowVisible">
+    <el-descriptions>
+      <el-descriptions-item label="商品图片">
+        <el-image style="width: 100px; height: 100px" :src="buyNowData.goodsPicture" :preview-src-list="buyNowData.goodsPicture">
+          <div slot="error" class="image-slot">
+            <i class="el-icon-picture-outline"></i>
+          </div>
+        </el-image>
+      </el-descriptions-item>
+      <el-descriptions-item label="商品名称">{{ buyNowData.goodsName }}</el-descriptions-item>
+      <el-descriptions-item label="价格">{{ buyNowData.goodsPrice }}</el-descriptions-item>
+    </el-descriptions>
+
+    <h1>付款码：</h1><br>
+    <el-image style="width: 300px; height: 300px" :src="buyNowData.alipayPicture" :preview-src-list="buyNowData.alipayPicture">
+      <div slot="error" class="image-slot">
+        <i class="el-icon-picture-outline"></i>
+      </div>
+    </el-image>
+
+    <el-image style="width: 300px; height: 300px" :src="buyNowData.wechatPayPicture" :preview-src-list="buyNowData.wechatPayPicture">
+      <div slot="error" class="image-slot">
+        <i class="el-icon-picture-outline"></i>
+      </div>
+    </el-image>
+
+    <el-row>
+      <el-col style="text-align: center;">
+        <el-button type="success" align="center" @click="buyInGoodsTag">支付成功</el-button>
+      </el-col>
+    </el-row>
+
+  </el-dialog>
+
+  <!--批量购买对话框-->
+  <el-dialog title="立即购买" :visible.sync="buyByIdsVisible">
+
+    <el-table :data="multipleSelection">
+      <el-table-column
+              prop="goodsName"
+              label="名称"
+              align="center"
+              width="200">
+      </el-table-column>
+
+      <el-table-column
+              label="图片"
+              align="center"
+              width="200">
+        <template slot-scope="scope">
+          <el-image style="width: 100px; height: 100px" :src="scope.row.goodsPicture" :preview-src-list="[scope.row.goodsPicture]">
+            <div slot="error" class="image-slot">
+              <i class="el-icon-picture-outline"></i>
+            </div>
+          </el-image>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+              prop="goodsPrice"
+              label="价格"
+              sortable
+              align="center"
+              width="150">
+      </el-table-column>
+
+    </el-table>
+
+    <el-descriptions  :column="3" border>
+      <el-descriptions-item label="合计">{{ totalPrice }}</el-descriptions-item>
+    </el-descriptions>
+
+    <h1>付款码：</h1><br>
+    <el-image style="width: 300px; height: 300px" :src="buyNowData.alipayPicture" :preview-src-list="buyNowData.alipayPicture">
+      <div slot="error" class="image-slot">
+        <i class="el-icon-picture-outline"></i>
+      </div>
+    </el-image>
+
+    <el-image style="width: 300px; height: 300px" :src="buyNowData.wechatPayPicture" :preview-src-list="buyNowData.wechatPayPicture">
+      <div slot="error" class="image-slot">
+        <i class="el-icon-picture-outline"></i>
+      </div>
+    </el-image>
+    <br>
+
+    <el-row>
+      <el-col style="text-align: center;">
+        <el-button type="success" align="center" @click="buyInCartTag">支付成功</el-button>
+      </el-col>
+    </el-row>
+
+  </el-dialog>
+
+  <!--我想开店表单-->
+  <el-dialog title="我想开店" :visible.sync="openStoreVisible">
+
+    <el-form :model="application" :rules="rules" ref="application" label-width="100px" class="demo-ruleForm">
+
+      <el-form-item label="店铺名称" :label-width="formLabelWidth" prop="name">
+        <el-input v-model="application.name" autocomplete="off"></el-input>
+      </el-form-item>
+
+      <el-form-item label="发货地址" :label-width="formLabelWidth" prop="address">
+        <el-input v-model="application.address" autocomplete="off"></el-input>
+      </el-form-item>
+
+      <el-form-item label="店铺介绍" :label-width="formLabelWidth" prop="description">
+        <el-input
+                type="textarea"
+                :rows="2"
+                :label-width="formLabelWidth"
+                placeholder="请输入内容"
+                v-model="application.description">
+        </el-input>
+      </el-form-item>
+
+      <el-form-item label="店铺Logo" :label-width="formLabelWidth" prop="applicationPic">
+        <el-input v-model="application.applicationPic" autocomplete="off"></el-input>
+      </el-form-item>
+
+    </el-form>
+
+    <el-image style="width: 100px; height: 100px" :src="application.applicationPic" :preview-src-list="[application.applicationPic]">
+      <div slot="error" class="image-slot">
+        <i class="el-icon-picture-outline"></i>
+      </div>
+    </el-image>
+
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="openStoreVisible = false">取 消</el-button>
+      <el-button type="primary" @click="openStoreCheck('application')">提交申请</el-button>
+    </div>
+  </el-dialog>
+
+  <!--修改资料表单-->
+  <el-dialog title="修改资料" :visible.sync="editDataVisible">
+
+    <el-form :model="editUserData" :rules="rulesOfEditData" ref="editUserData" label-width="100px" class="demo-ruleForm">
+
+      <el-form-item label="用户名称" :label-width="formLabelWidth" prop="userName">
+        <el-input v-model="editUserData.userName" maxlength="16" autocomplete="off"></el-input>
+      </el-form-item>
+
+      <el-form-item label="收货地址" :label-width="formLabelWidth" prop="userAddress">
+        <el-input v-model="editUserData.userAddress" maxlength="50" autocomplete="off"></el-input>
+      </el-form-item>
+
+      <el-form-item label="手机号码" :label-width="formLabelWidth" prop="phoneNumber">
+        <el-input v-model="editUserData.phoneNumber" maxlength="11" autocomplete="off"></el-input>
+      </el-form-item>
+
+      <el-form-item label="头像" :label-width="formLabelWidth" prop="userPicture">
+        <el-input v-model="editUserData.userPicture" autocomplete="off"></el-input>
+      </el-form-item>
+
+    </el-form>
+
+    <el-image style="width: 100px; height: 100px" :src="editUserData.userPicture" :preview-src-list="[editUserData.userPicture]">
+      <div slot="error" class="image-slot">
+        <i class="el-icon-picture-outline"></i>
+      </div>
+    </el-image>
+
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="editData(2)">取 消</el-button>
+      <el-button type="primary" @click="editDataForm('editUserData',1)">修改</el-button>
+    </div>
+  </el-dialog>
+
+
+</div>
+
+<!--插件-->
+<script src="js/Vue.js"></script>
+<script src="element-ui/index.js"></script>
+<link rel="stylesheet" href="element-ui/theme-chalk/index.css">
+<script src="js/axios-0.18.0.js"></script>
+
+
+<script>
+  new Vue({
+    el:"#goods",
+    mounted: function () {
+      this.synchronize();
+      setTimeout(() => {
+        this.selectAllGoods();
+        this.selectAllStores();
+        this.selectAllGoodsOfCart();
+        this.selectAllOrder();
+        this.selectAllApplication();
+        this.selectAllNotice();
+      }, 100);
+    },
+
+    methods:{
+      //同步信息
+      synchronize(){
+        axios({
+          method: "post",
+          url:'http://localhost/qg/user/synchronize',
+          data:"synchronize"
+        }).then(resp =>{
+          this.user.userId = resp.data.userId;
+          this.user.userName = resp.data.userName;
+          this.user.password = resp.data.password;
+          this.user.userPicture = resp.data.userPicture;
+          this.user.userAddress = resp.data.userAddress;
+          this.user.phoneNumber = resp.data.phoneNumber;
+          this.user.identity = resp.data.userIdentityStr;
+          this.editUserData.userName = resp.data.userName;
+          this.editUserData.userAddress = resp.data.userAddress;
+          this.editUserData.userPicture = resp.data.userPicture;
+          this.editUserData.phoneNumber = resp.data.phoneNumber;
+        })
+      },
+
+      //显示所有商品
+      selectAllGoods(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectAllGoods",
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      //查看所有通知
+      selectAllNotice(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/application/selectAllNotice",
+          data:{
+            userId:this.user.userId
+          }
+        }).then(response =>{
+          //表格记录
+          this.noticeData = response.data;
+        })
+      },
+
+      //查看商店
+      selectAllStores(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/store/selectAllStores",
+        }).then(response =>{
+          //表格记录
+          this.storeData = response.data;
+        })
+      },
+
+      //店铺名查找商品
+      selectGoodsByStoreName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectGoodsByStoreName",
+          data: {
+            storeName:this.selectByStoreNameData.storeName}
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      //显示所有申请
+      selectAllApplication(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/application/selectAllApplicationByUserId",
+          data:{
+            userId:this.user.userId
+          }
+        }).then(response =>{
+          //表格记录
+          this.applications = response.data;
+        })
+      },
+
+      //查看购物车
+      selectAllGoodsOfCart(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectAllGoodsOfCart",
+          data:{
+            userId:this.user.userId
+          }
+        }).then(response =>{
+          //表格记录
+          this.cartData = response.data;
+        })
+      },
+
+      // 查找
+      selectGoodsByName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectGoodsByName",
+          data: {
+            goodsName:this.selectGoodsData.goodsName}
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      //店铺搜索
+      selectStoresByName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/store/selectStoresByName",
+          data: {
+            storeName:this.selectStoreData.storeName}
+        }).then(response =>{
+          //表格记录
+          this.storeData = response.data;
+        })
+      },
+
+      //申请开店
+      applyStore(){
+        this.$confirm('是否提交申请?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          //点击确认时
+          //发送ajax请求
+          axios({
+            method: "post",
+            url:"http://localhost/qg/application/openStoreApplication",
+            data:{
+              name:this.application.name,
+              userId:this.user.userId,
+              applicationPic:this.application.applicationPic,
+              description:this.application.description,
+              userName:this.user.userName,
+              address:this.application.address
+            }
+          }).then(resp =>{
+            this.openStoreVisible = false;
+
+            if(resp.data == "success"){//加入成功
+              showClose: true,
+                      //使用element组件弹出消息提示
+                      this.$message({
+                        message: '提交申请成功',
+                        type: 'success'
+                      });
+              this.application.name = '';
+              this.application.applicationPic = '';
+              this.application.description = '';
+
+              this.selectAllApplication();
+            }else{
+              this.$message({
+                message: '提交申请失败',
+                type: 'error'
+              });
+            }
+          });
+        }).catch(() => {
+          //点击取消时
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          });
+        });
+      },
+
+      //单品立即购买
+      buyNow(index, rows, message){
+        this.buyNowData.goodsName = rows.goodsName;
+        this.buyNowData.goodsPicture = rows.goodsPicture;
+        this.buyNowData.goodsPrice = rows.goodsPrice;
+        this.buyNowData.store = rows.store;
+        this.selectedIds = [rows.goodsId];
+        this.buyNowIndex = message;
+        this.buyNowVisible = true;
+      },
+
+      //订单
+      selectAllOrder(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/order/selectAllOrders",
+          data:{
+            userId:this.user.userId
+          }
+        }).then(response =>{
+          //表格记录
+          this.orderData = response.data;
+        })
+      },
+
+      //加入订单
+      addToOrderByIds(){
+        //2.发送ajax请求
+        axios({
+          method: "post",
+          url:"http://localhost/qg/order/addToOrderByIds",
+          data: {
+            ordersIds:this.selectedIds,
+            userId:this.user.userId
+          }
+        }).then(resp =>{
+          if(resp.data == "success"){//加入订单成功
+
+            if(this.buyByIdsVisible == true){
+              this.buyByIdsVisible = false;
+            }else if(this.buyNowVisible == true){
+              this.buyNowVisible = false;
+            }
+
+            this.selectedIds = [];
+            //重新查询
+            this.selectAllOrder();
+
+
+            showClose: true,
+                    //使用element组件弹出消息提示
+                    this.$message({
+                      message: '操作成功！',
+                      type: 'success'
+                    });
+          }else if(resp.data == "SellOut"){
+            this.$message({
+              message: '购买商品售罄',
+              type: 'error'
+            });
+          }else{
+            this.$message({
+              message: '失败成功！',
+              type: 'success'
+            });
+          }
+        });
+      },
+
+      // 加入购物车
+      addToCart(index, rows){
+        //发送ajax请求
+        axios({
+          method: "post",
+          url:"http://localhost/qg/goods/addToCart",
+          data:{
+            goodsId:rows.goodsId,
+            userId:this.user.userId
+          }
+        }).then(resp =>{
+          if(resp.data == "success"){//加入成功
+            showClose: true,
+                    //使用element组件弹出消息提示
+                    this.$message({
+                      message: '恭喜你，加入购物车成功！',
+                      type: 'success'
+                    });
+            this.selectAllGoodsOfCart();
+          }else{
+            this.$message({
+              message: '加入购物车失败',
+              type: 'error'
+            });
+          }
+        });
+      },
+
+      //进入店铺
+      goToStore(index, rows){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectByStoreId",
+          data:{
+            storeId:rows.storeId
+          }
+        }).then(response =>{
+          this.goodsData = [];
+          this.goodsData = response.data;
+
+        })
+      },
+
+      //移除购物车
+      deleteFromCartByIds(){
+        for (let i = 0; i < this.multipleSelection.length; i++) {
+          this.selectedIds[i] = this.multipleSelection[i].goodsId;
+        }
+
+        //2.发送ajax请求
+        axios({
+          method: "post",
+          url:"http://localhost/qg/goods/deleteFromCartByIds",
+          data: {
+            goodsIds:this.selectedIds,
+            userId:this.user.userId
+          }
+        }).then(resp =>{
+          if(resp.data == "success"){//删除成功
+            //重置数据
+            this.totalPrice = 0;
+            this.multipleSelection = [];
+
+            if(this.buyByIdsVisible == true){
+              this.buyByIdsVisible = false;
+            }
+
+            //重新查询
+            this.selectAllGoodsOfCart();
+
+            showClose: true,
+                    //使用element组件弹出消息提示
+                    this.$message({
+                      message: '操作成功！',
+                      type: 'success'
+                    });
+          }else{
+            this.$message({
+              message: '操作失败！',
+              type: 'error'
+            });
+          }
+        });
+      },
+
+      //购物车多选框
+      cartSelection(rows) {
+        if (rows) {
+          rows.forEach(row => {
+            this.$refs.multipleTable.toggleRowSelection(row);
+          });
+        } else {
+          this.$refs.multipleTable.clearSelection();
+        }
+      },
+      cartSelectionChange(val) {
+        this.multipleSelection = val;
+      },
+
+      buyInGoodsTag(){
+        this.addToOrderByIds();
+        if (this.buyNowIndex == 2){
+           this.deleteFromCartByIds();
+        }
+        this.selectAllGoods();
+      },
+
+      buyInCartTag(){
+        this.deleteFromCartByIds();
+        this.addToOrderByIds();
+        this.selectAllGoods();
+      },
+
+      //批量购买
+      buyGoodsByIds(){
+        this.$confirm('现在前往支付?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          //点击同意
+
+          //统计价格
+          for (let i = 0; i < this.multipleSelection.length; i++) {
+            let selectionElement = this.multipleSelection[i];
+             this.totalPrice += selectionElement.goodsPrice;
+          }
+          //拉起对话框
+          this.buyByIdsVisible = true;
+
+        }).catch(() => {
+          //点击取消时
+          this.$message({
+            type: 'info',
+            message: '已取消购买！'
+          });
+          //重置价格
+          this.totalPrice = 0;
+        });
+      },
+
+      openStoreCheck(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.applyStore();
+          } else {
+            this.$message({
+              type: 'info',
+              message: '请填写完整信息！'
+            });
+            return false;
+          }
+        });
+      },
+
+      //修改个人资料
+      editData(message){
+        if (message == 1){//修改
+          axios({
+            method:"post",
+            url:"http://localhost/qg/user/editData",
+            data: {
+              userId:this.user.userId,
+              userName:this.editUserData.userName,
+              userAddress:this.editUserData.userAddress,
+              userPicture:this.editUserData.userPicture,
+              phoneNumber:this.editUserData.phoneNumber
+            }
+          }).then(response =>{
+            this.editDataVisible = false;
+            if (response.data == "success"){
+              this.$message({
+                type: 'success',
+                message: '修改成功！'
+              });
+            }else {
+              this.$message({
+                type: 'error',
+                message: '修改失败！'
+              });
+            }
+          })
+        }else{//取消
+          this.editDataVisible = false;
+          this.$message({
+            type: 'info',
+            message: '已取消修改'
+          });
+        }
+        setTimeout(() => {
+          this.synchronize();
+        }, 100);
+      },
+
+      editDataForm(formName,message) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.editData(message);
+          } else {
+            this.$message({
+              type: 'info',
+              message: '请填写有效信息！'
+            });
+            return false;
+          }
+        });
+      },
+
+      //确认收货
+      confirmReceipt(index, rows){
+        switch(rows.orderState){
+          case 1:
+            this.$message({
+              type: 'error',
+              message: '商品还未发货！'
+            });
+            break;
+          case 2:
+            axios({
+              method:"post",
+              url:"http://localhost/qg/order/confirmReceipt",
+              data: {
+                orderId:rows.orderId
+              }
+            }).then(response =>{
+              if (response.data == "success"){
+                this.$message({
+                  type: 'success',
+                  message: '确认收货成功，去给商品评价吧！'
+                });
+              }else {
+                this.$message({
+                  type: 'error',
+                  message: '确认收货失败！'
+                });
+              }
+            })
+            setTimeout(() => {
+              this.selectAllOrder();
+            }, 100);
+            break;
+          default:
+            this.$message({
+              type: 'warning',
+              message: '已收货！'
+            });
+        }
+      },
+      //评论
+      remark(){
+        axios({
+          method: "post",
+          url: "http://localhost/qg/comment/remarkByGoodsId",
+          data: {
+            orderId:this.remarkData.orderId,
+            goodsId:this.remarkData.goodsId,
+            grade:this.remarkData.grade,
+            description:this.remarkData.description,
+            userId:this.user.userId
+          }
+        }).then(response => {
+
+          this.remarkVisible = false;
+
+          if (response.data == "success") {
+            this.$message({
+              type: 'success',
+              message: '谢谢您的评论！'
+            });
+            this.selectAllOrder();
+          } else {
+            this.$message({
+              type: 'error',
+              message: '评论失败！'
+            });
+          }
+        })
+      },
+
+      remarkTag(index, rows){
+        switch (rows.orderState) {
+          case 1:
+          case 2:
+            this.$message({
+              type: 'error',
+              message: '请先确认收货！'
+            });
+            break;
+          case 3:
+            this.$message({
+              type: 'error',
+              message: '请勿重复提交申请！'
+            });
+            break;
+          case 4:
+            this.remarkData.goodsId = rows.goodsId;
+            this.remarkData.orderId = rows.orderId;
+            this.remarkVisible = true;
+            break;
+          default:
+            this.$message({
+              type: 'warning',
+              message: '订单已结束！'
+            });
+        }
+      },
+
+      remarkSubmitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.remark();
+          } else {
+            return false;
+          }
+        });
+      },
+
+      //查看评论
+      selectComment(index,rows){
+        axios({
+          method: "post",
+          url: "http://localhost/qg/comment/selectCommentByGoodsId",
+          data: {
+            goodsId:rows.goodsId
+          }
+        }).then(response => {
+            this.commentsData = response.data;
+            setTimeout(() => {
+              this.commentVisible = true;
+            }, 50);
+        })
+      },
+
+      //售后
+      applyServiceAfterSales(index, rows) {
+        switch (rows.orderState) {
+          case 1:
+          case 2:
+            this.$message({
+              type: 'error',
+              message: '请先确认收货！'
+            });
+            break;
+          case 3:
+            this.$message({
+              type: 'error',
+              message: '请勿重复提交申请！'
+            });
+            break;
+          case 4:
+            axios({
+              method: "post",
+              url: "http://localhost/qg/order/applyServiceAfterSales",
+              data: {
+                orderId: rows.orderId
+              }
+            }).then(response => {
+              if (response.data == "success") {
+                this.$message({
+                  type: 'success',
+                  message: '确认收货成功，去给商品评价吧！'
+                });
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: '确认收货失败！'
+                });
+              }
+            })
+            setTimeout(() => {
+              this.selectAllOrder();
+            }, 100);
+            break;
+          default:
+            this.$message({
+              type: 'warning',
+              message: '订单已结束！'
+            });
+        }
+      },
+      //申请
+      clearFilter() {
+        this.$refs.orderFilterTable.clearFilter();
+      },
+      filterHandler(value, row, column) {
+        const property = column['property'];
+        return row[property] === value;
+      },
+      //退出登录
+      logout(){
+        axios({
+          method: "post",
+          url: "http://localhost/qg/user/logout",
+        }).then(response => {
+          window.location.replace("http://localhost/qg/tourist.html");
+        })
+      }
+
+    },
+
+    data(){
+      return{
+        //标签位置
+        tabPosition: 'left',
+
+        //个人信息
+        user:{
+          userId:'',
+          userName:'',
+          password:'',
+          userPicture:'',
+          userAddress:'',
+          phoneNumber:'',
+          identity:'',
+          storeId:''
+        },
+        editUserData:{
+          userName:'',
+          userPicture:'',
+          userAddress:'',
+          phoneNumber:''
+        },
+
+        rules:{
+          name:[
+            { required: true, message: '请输入店铺名称', trigger: 'blur' }
+          ],
+          description:[
+            { required: true, message: '请输入店铺介绍', trigger: 'blur' }
+          ],
+          applicationPic:[
+            { required: true, message: '请输入有效图片链接', trigger: 'blur' }
+          ],
+          address:[
+            { required: true, message: '请输入地址', trigger: 'blur' }
+          ]
+        },
+        rulesOfEditData:{
+          userName:[
+            { required: true, message: '请填写用户名', trigger: 'blur' },
+            { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' }
+          ],
+          phoneNumber:[
+            { required: true, message: '请填写电话号码', trigger: 'blur' },
+            { min: 11, max: 11, message: '长度应该为11位', trigger: 'blur' }
+          ],
+          userPicture:[
+            { required: true, message: '请填写有效图片链接', trigger: 'blur' }
+          ],
+          userAddress:[
+            { required: true, message: '请填写地址', trigger: 'blur' }
+          ]
+        },
+        rulesOfRemark:{
+          grade:[
+            { required: true, message: '请选择评分', trigger: 'change' }
+          ],
+          description:[
+            { required: true, message: '请填写文字评论', trigger: 'blur' }
+          ]
+        },
+
+        //商品信息
+        goods:{
+          goodsName:'',
+          goodsPicture:'',
+          monthlySales:0,
+          goodsState:'',
+          goodsPrice:'',
+          inventory:'',
+          comments:[],
+          isPurchased:0,
+          goodsDescription:'',
+          storeId:0
+        },
+        //评论信息
+        remarkData:{
+          orderId:0,
+          goodsId:0,
+          grade:'',
+          description:''
+        },
+        commentsData:[],
+
+        //商品列表内容
+        goodsData:[],
+
+        //店铺信息
+        store:{
+          storeLogo:'',
+          storeName:'',
+          storeAddress:'',
+          storeId:''
+        },
+        storeData:[],
+
+        //申请信息
+        application:{
+          applicationId:0,
+          applicationType:1,
+          applicationUserId:0,
+          applicationUserName:'',
+          address:'',
+          name:'',//要填
+          description:'',//要填
+          applicationDate:'',
+          applicationState:0,
+          applicationPic:''//要填
+        },
+
+        applications: [],
+
+        //购物车信息
+        cartGoods:{
+          goodsName:'',
+          goodsPicture:'',
+          goodsPrice:'',
+          inventory:'',
+          monthlySales:0,
+          commentData:[],
+          storeId:0
+        },
+        cartData:[],
+
+        //订单信息：
+        order:{
+          orderId:0,
+          goodsId:0,
+          orderState:0,
+          goodsName:'',
+          customerPlace:'',
+          storeAddress: '',
+          orderTime:'',
+          goodsPicture:'',
+          storeId:0
+        },
+        orderData:[],
+
+        //查询信息
+        selectGoodsData: {
+          goodsName: ''
+        },
+        selectByStoreNameData:{
+          storeName:''
+        },
+        selectStoreData: {
+          storeName: ''
+        },
+        //查询对话框
+        commentVisible: false,
+        remarkVisible: false,
+
+        //立即购买对话框
+        buyNowVisible: false,
+        buyNowData:{
+          goodsName:'',
+          goodsPicture:'',
+          goodsPrice:'',
+          wechatPayPicture:'https://pic-1317004580.cos.ap-guangzhou.myqcloud.com/%E6%9D%82/WeChatpay.png',
+          alipayPicture:'https://pic-1317004580.cos.ap-guangzhou.myqcloud.com/%E6%9D%82/alipay.png'
+        },
+        buyNowIndex:0,
+        //批量购买对话框
+        buyByIdsVisible: false,
+
+        //申请开店对话框
+        openStoreVisible:false,
+
+        //修改个人资料对话框
+        editDataVisible: false,
+
+        //合计价格
+        totalPrice:0,
+        //图片
+        fits:['fill'],
+        //通知栏
+        noticeData:[],
+
+        //多选项
+        selectedIds:[],
+        multipleSelection: [],
+      }
+    }
+
+  })
+</script>
+
+</body>
+</html>

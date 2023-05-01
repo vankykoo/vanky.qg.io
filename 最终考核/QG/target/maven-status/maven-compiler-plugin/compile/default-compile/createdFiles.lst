@@ -1,0 +1,11 @@
+com\diy\pojo\Brand.class
+com\diy\mapper\BrandMapper.class
+com\diy\web\servlet\UserServlet.class
+com\diy\pojo\PageBean.class
+com\diy\web\old\QueryAllServlet.class
+com\diy\web\servlet\BrandServlet.class
+com\diy\service\Impl\BrandServiceImpl.class
+com\diy\service\BrandService.class
+com\diy\web\old\AddNewServlet.class
+com\diy\util\SqlSessionFactoryUtils.class
+com\diy\web\servlet\BaseServlet.class

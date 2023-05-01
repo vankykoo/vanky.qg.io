@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>webManager</title>
+
+</head>
+<body>
+
+<div id="goods">
+  <el-row>
+    <el-col :span="12">
+      <h3>你好，{{ user.userName }}~</h3>
+    </el-col>
+
+    <el-col :span="12" align="right">
+      <el-button @click="logout" type="danger" align="right">退出登录</el-button>
+    </el-col>
+  </el-row>
+
+  <template>
+    <el-tabs :tab-position="tabPosition" style="height: 670px;">
+
+      <el-tab-pane label="商品">
+
+        <el-row>
+          <el-col :span="8">
+            <!--搜索表单-->
+            <el-form :inline="true" :model="selectGoodsData" class="demo-form-inline">
+              <el-form-item label="商品搜索">
+                <el-input v-model="selectGoodsData.goodsName" placeholder="商品名称"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="selectGoodsByName">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </el-col>
+
+          <el-col :span="8" align="right">
+            <!--按店名搜索-->
+            <el-form :inline="true" :model="selectByStoreNameData" class="demo-form-inline">
+              <el-form-item label="商品搜索">
+                <el-input v-model="selectByStoreNameData.storeName" placeholder="店铺名称"></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="selectGoodsByStoreName">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </el-col>
+        </el-row>
+
+
+        <!--商品信息-->
+        <template>
+          <el-table
+                  :data="goodsData"
+                  style="width: 100%; height: 100px"
+                  height="600">
+            <el-table-column
+                    prop="goodsName"
+                    label="名称"
+                    align="center"
+                    width="400">
+            </el-table-column>
+
+            <el-table-column
+                    label="图片"
+                    align="center"
+                    width="200">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.goodsPicture" :preview-src-list="[scope.row.goodsPicture]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="monthlySales"
+                    label="月销量"
+                    sortable
+                    align="center"
+                    width="150">
+            </el-table-column>
+
+            <!--查看评论-->
+            <el-table-column
+                    prop="comment"
+                    label="评论"
+                    align="center"
+                    width="150">
+              <template slot-scope="scope">
+                <el-button type="primary" @click="selectComment(scope.$index, scope.row)">查看评论</el-button>
+              </template>
+            </el-table-column>
+
+            <!--店铺-->
+            <el-table-column
+                    prop="storeName"
+                    label="店铺"
+                    align="center"
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="200">
+              <template slot-scope="scope">
+                <el-button
+                        @click.native.prevent="withdraw(scope.$index, scope.row)"
+                        type="danger">
+                  下架商品
+                </el-button>
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane>  <!--商品标签-->
+
+      <el-tab-pane label="申请审核">
+        <template>
+          <el-button @click="clearFilter" type="primary">显示所有订单</el-button>
+
+          <el-table
+                  ref="filterTable"
+                  height="620"
+                  :data="applications"
+                  style="width: 100%; height: 100px">
+            <el-table-column
+                    prop="applicationDate"
+                    align="center"
+                    label="日期"
+                    sortable
+                    width="200">
+            </el-table-column>
+
+            <el-table-column
+                    prop="applicationTypeStr"
+                    align="center"
+                    label="申请类型"
+                    width="180">
+            </el-table-column>
+
+            <el-table-column
+                    label="图片"
+                    align="center"
+                    width="250">
+              <template slot-scope="scope">
+                <el-image style="width: 100px; height: 100px" :src="scope.row.applicationPic" :preview-src-list="[scope.row.applicationPic]">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="name"
+                    align="center"
+                    label="名称"
+                    width="250">
+            </el-table-column>
+
+            <el-table-column
+                    prop="description"
+                    align="center"
+                    label="描述"
+                    width="300">
+            </el-table-column>
+
+            <el-table-column
+                    prop="applicationStateStr"
+                    fixed="right"
+                    label="审核状态"
+                    width="150"
+                    column-key="applicationStateStr"
+                    :filters="[{text: '审核中', value: '审核中'},
+                    {text: '审核通过', value: '审核通过'},
+                    {text: '审核未通过', value: '审核未通过'}]"
+                    :filter-method="filterHandler"
+            >
+            </el-table-column>
+
+
+            <el-table-column
+                    fixed="right"
+                    label="操作"
+                    align="center"
+                    width="300">
+              <template slot-scope="scope">
+                <el-button
+                        @click.native.prevent="agree(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  同意
+                </el-button>
+
+                <el-button
+                        @click.native.prevent="disagree(scope.$index, scope.row)"
+                        type="primary"
+                        size="small">
+                  拒绝
+                </el-button>
+
+              </template>
+            </el-table-column>
+
+          </el-table>
+        </template>
+      </el-tab-pane><!--申请审核-->
+
+      <el-tab-pane label="个人信息">
+
+        <el-button type="primary" @click="editDataTag">修改资料</el-button>
+
+        <el-descriptions title="个人资料" direction="vertical" :column="4" border>
+
+          <el-descriptions-item label="头像">
+            <el-image style="width: 60px; height: 60px" :src="user.userPicture" :preview-src-list="[user.userPicture]">
+              <div slot="error" class="image-slot">
+                <img src="https://img.zcool.cn/community/01a3865ab91314a8012062e3c38ff6.png@1280w_1l_2o_100sh.png" alt="默认图片">
+              </div>
+            </el-image>
+          </el-descriptions-item>
+
+          <el-descriptions-item label="用户名">{{ user.userName }}</el-descriptions-item>
+          <el-descriptions-item label="手机号">{{ user.phoneNumber }}</el-descriptions-item>
+          <el-descriptions-item label="用户身份">{{ user.identity }}</el-descriptions-item>
+          </el-descriptions>
+
+      </el-tab-pane><!--个人信息-->
+
+
+
+    </el-tabs>
+  </template>
+
+  <!--查看评论对话框-->
+  <el-dialog title="商品评论" :visible.sync="commentVisible">
+        <el-table
+                :data="commentsData"
+                style="width: 100%"
+                height="400">
+          <el-table-column
+                  property="grade"
+                  width="100" label="评分"
+                  align="center">
+          </el-table-column>
+
+          <el-table-column
+                  property="description"
+                  label="文字评论"
+                  align="center">
+          </el-table-column>
+
+          <el-table-column
+                  fixed="right"
+                  label="操作"
+                  width="120">
+            <template slot-scope="scope">
+              <el-button
+                      @click.native.prevent="deleteRemark(scope.$index, scope.row)"
+                      type="danger">
+                删除评论
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+  </el-dialog>
+
+  <!--修改资料表单-->
+  <el-dialog title="修改资料" :visible.sync="editDataVisible">
+
+    <el-form :model="editUserData" :rules="rulesOfEditData" ref="editUserData" label-width="100px" class="demo-ruleForm">
+
+      <el-form-item label="用户名称" :label-width="formLabelWidth" prop="userName">
+        <el-input v-model="editUserData.userName" maxlength="16" autocomplete="off"></el-input>
+      </el-form-item>
+
+      <el-form-item label="手机号码" :label-width="formLabelWidth" prop="phoneNumber">
+        <el-input v-model="editUserData.phoneNumber" maxlength="11" autocomplete="off"></el-input>
+      </el-form-item>
+
+      <el-form-item label="头像" :label-width="formLabelWidth" prop="userPicture">
+        <el-input v-model="editUserData.userPicture" autocomplete="off"></el-input>
+      </el-form-item>
+
+    </el-form>
+
+    <el-image style="width: 100px; height: 100px" :src="editUserData.userPicture" :preview-src-list="[editUserData.userPicture]">
+      <div slot="error" class="image-slot">
+        <i class="el-icon-picture-outline"></i>
+      </div>
+    </el-image>
+
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="editData(2)">取 消</el-button>
+      <el-button type="primary" @click="editDataForm('editUserData',1)">修改</el-button>
+    </div>
+  </el-dialog>
+
+</div>
+
+<!--插件-->
+<script src="js/Vue.js"></script>
+<script src="element-ui/index.js"></script>
+<link rel="stylesheet" href="element-ui/theme-chalk/index.css">
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+  new Vue({
+    el:"#goods",
+    mounted: function () {
+      this.synchronize();
+      setTimeout(() => {
+        this.selectAllGoods();
+        this.selectAllApplication();
+      }, 100);
+    },
+
+    methods:{
+      //同步信息
+      synchronize(){
+        axios({
+          method: "post",
+          url:'http://localhost/qg/user/synchronize',
+          data:"synchronize"
+        }).then(resp =>{
+          this.user.userId = resp.data.userId;
+          this.user.userName = resp.data.userName;
+          this.user.password = resp.data.password;
+          this.user.userPicture = resp.data.userPicture;
+          this.user.userAddress = resp.data.userAddress;
+          this.user.phoneNumber = resp.data.phoneNumber;
+          this.user.identity = resp.data.userIdentityStr;
+        })
+      },
+      // 查找
+      selectAllGoods(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectAllGoods",
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+      //搜索商品
+      selectGoodsByName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectGoodsByName",
+          data: {
+            goodsName:this.selectGoodsData.goodsName}
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      selectGoodsByStoreName(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectGoodsByStoreName",
+          data: {
+            storeName:this.selectByStoreNameData.storeName}
+        }).then(response =>{
+          //表格记录
+          this.goodsData = response.data;
+        })
+      },
+
+      //进入店铺
+      goToStore(index, rows){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/goods/selectByStoreId",
+          data:{
+            storeId:rows.storeId
+          }
+        }).then(response =>{
+
+          this.goodsData = [];
+          this.goodsData = response.data;
+
+        })
+      },
+
+      //修改个人资料
+      editData(message){
+        if (message == 1){//修改
+          axios({
+            method:"post",
+            url:"http://localhost/qg/user/editData",
+            data: {
+              userId:this.user.userId,
+              userName:this.editUserData.userName,
+              userAddress:'',
+              userPicture:this.editUserData.userPicture,
+              phoneNumber:this.editUserData.phoneNumber
+            }
+          }).then(response =>{
+            this.editDataVisible = false;
+            if (response.data == "success"){
+              this.$message({
+                type: 'success',
+                message: '修改成功！'
+              });
+            }else {
+              this.$message({
+                type: 'error',
+                message: '修改失败！'
+              });
+            }
+          })
+        }else{//取消
+          this.editDataVisible = false;
+          this.$message({
+            type: 'info',
+            message: '已取消修改'
+          });
+        }
+        setTimeout(() => {
+          this.synchronize();
+        }, 100);
+      },
+
+      editDataTag(){
+        this.editUserData.userName = this.user.userName;
+        this.editUserData.userPicture = this.user.userPicture;
+        this.editUserData.phoneNumber = this.user.phoneNumber;
+
+        this.editDataVisible = true;
+      },
+
+      editDataForm(formName,message) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.editData(message);
+          } else {
+            this.$message({
+              type: 'info',
+              message: '请填写有效信息！'
+            });
+            return false;
+          }
+        });
+      },
+
+      //查看所有审核
+      selectAllApplication(){
+        axios({
+          method:"post",
+          url:"http://localhost/qg/application/selectAllApplication",
+        }).then(response =>{
+          //表格记录
+          this.applications = response.data;
+        })
+      },
+
+      //同意申请
+      agree(index, rows){
+        let isAgree = 1;
+        //需要有状态的判断
+        if (rows.applicationState == 0){
+          axios({
+            method:"post",
+            url:"http://localhost/qg/application/handleApplication",
+            data:{
+              applicationId: rows.applicationId,
+              applicationType: rows.applicationType,
+              applicationUserId: rows.applicationUserId,
+              applicationUserName: rows.applicationUserName,
+              name: rows.name,
+              applicationPic: rows.applicationPic,
+              description: rows.description,
+              address: rows.address,
+              goodsId: rows.goodsId,
+              isAgree: isAgree
+            }
+          }).then(response =>{
+            if (response.data == "success"){
+              this.$message({
+                message: '处理成功',
+                type: 'success'
+              });
+            }else{
+              this.$message({
+                message: '处理失败，请重试',
+                type: 'error'
+              });
+            }
+            this.selectAllApplication();
+          })
+        }else{
+          this.$message({
+            message: '已处理',
+            type: 'warning'
+          });
+        }
+      },
+      //拒绝申请
+      disagree(index, rows){
+        let isAgree = 2;
+        //需要有状态的判断
+        if (rows.applicationState == 0){
+          axios({
+            method:"post",
+            url:"http://localhost/qg/application/handleApplication",
+            data:{
+              applicationId: rows.applicationId,
+              applicationType: rows.applicationType,
+              applicationUserId: rows.applicationUserId,
+              applicationUserName: rows.applicationUserName,
+              name: rows.name,
+              applicationPic: rows.applicationPic,
+              description: rows.description,
+              address: rows.address,
+              goodsId: rows.goodsId,
+              isAgree: isAgree
+            }
+          }).then(response =>{
+            if (response.data == "success"){
+              this.$message({
+                message: '处理成功',
+                type: 'success'
+              });
+            }else{
+              this.$message({
+                message: '处理失败，请重试',
+                type: 'error'
+              });
+            }
+            this.selectAllApplication();
+            this.selectAllGoods();
+          })
+        }else{
+          this.$message({
+            message: '已处理',
+            type: 'warning'
+          });
+        }
+      },
+
+      //下架商品
+      withdraw(index, rows){
+        this.$confirm('是否下架商品?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          //点击确定时
+          axios({
+            method:"post",
+            url:"http://localhost/qg/goods/deleteByGoodsId",
+            data:{
+              goodsId:rows.goodsId,
+              goodsName:rows.goodsName,
+              storeId:rows.storeId,
+              isWebManager: 1
+            }
+          }).then(response =>{
+            if (response.data == "success"){
+              this.$message({
+                message: '下架商品成功',
+                type: 'success'
+              });
+            }else{
+              this.$message({
+                message: '下架商品失败，请重试',
+                type: 'error'
+              });
+            }
+            this.selectAllGoods();
+          })
+        }).catch(() => {
+          //点击取消时
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          });
+        });
+      },
+
+      //查看评论
+      selectComment(index,rows){
+        axios({
+          method: "post",
+          url: "http://localhost/qg/comment/selectCommentByGoodsId",
+          data: {
+            goodsId:rows.goodsId
+          }
+        }).then(response => {
+          this.commentsData = response.data;
+          setTimeout(() => {
+            this.commentVisible = true;
+          }, 50);
+        })
+      },
+
+      //删除评论
+      deleteRemark(index, rows){
+        this.$confirm('是否删除此评论?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          //点击确认时
+          axios({
+            method: "post",
+            url: "http://localhost/qg/comment/deleteByCommentId",
+            data: {
+              userId:rows.userId,
+              commentId:rows.commentId,
+              content:rows.description
+            }
+          }).then(response => {
+
+            if (response.data == "success"){
+              this.$message({
+                type: 'success',
+                message: '删除成功'
+              });
+            }else{
+              this.$message({
+                type: 'error',
+                message: '删除失败，请重试'
+              });
+            }
+
+            setTimeout(() => {
+              this.selectComment(index,rows);
+            }, 50);
+          })
+        }).catch(() => {
+          //点击取消时
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          });
+        });
+      },
+
+      //过滤器
+      clearFilter() {
+        this.$refs.filterTable.clearFilter();
+      },
+      filterHandler(value, row, column) {
+        const property = column['property'];
+        return row[property] === value;
+      },
+      //退出登录
+      logout(){
+        axios({
+          method: "post",
+          url: "http://localhost/qg/user/logout",
+        }).then(response => {
+          window.location.replace("http://localhost/qg/tourist.html");
+        })
+      }
+
+    },
+    data(){
+      return{
+        //标签位置
+        tabPosition: 'left',
+
+        //个人信息
+        user:{
+          userId:'',
+          userName:'',
+          password:'',
+          userPicture:'',
+          userAddress:'',
+          phoneNumber:'',
+          identity:'',
+          storeId:''
+        },
+        editUserData:{
+          userName:'',
+          userPicture:'',
+          phoneNumber:''
+        },
+        //商品属性
+        goods:{
+          goodsName:'',
+          goodsPicture:'',
+          monthlySales:0,
+          goodsState:'',
+          goodsPrice:'',
+          inventory:'',
+          comments:[],
+          isPurchased:0,
+          goodsDescription:'',
+          storeId:0
+        },
+        //商品信息
+        goodsData:[],
+
+        //评论信息
+        remarkData:{
+          orderId:0,
+          goodsId:0,
+          grade:'',
+          description:''
+        },
+        commentsData:[],
+
+
+        //查询信息
+        selectGoodsData: {
+          goodsName: ''
+        },
+        selectByStoreNameData:{
+          storeName:''
+        },
+        //评论对话框
+        commentVisible: false,
+        //修改资料对话框
+        editDataVisible: false,
+
+        //申请信息
+        //申请信息
+        application:{
+          applicationId:0,
+          applicationType:1,
+          applicationUserId:0,
+          applicationUserName:'',
+          address:'',
+          name:'',//要填
+          description:'',//要填
+          applicationDate:'',
+          applicationState:0,
+          applicationPic:''//要填
+        },
+        applications: [],
+
+        rulesOfEditData: {
+          userName: [
+            {required: true, message: '请填写用户名', trigger: 'blur'},
+            {min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur'}
+          ],
+          phoneNumber: [
+            {required: true, message: '请填写电话号码', trigger: 'blur'},
+            {min: 11, max: 11, message: '长度应该为11位', trigger: 'blur'}
+          ],
+          userPicture: [
+            {required: true, message: '请填写有效图片链接', trigger: 'blur'}
+          ]
+        },
+
+        //多选项
+        multipleSelection: [],
+        //私聊内容
+        chatMessage:''
+      }
+    }
+
+  })
+</script>
+
+</body>
+</html>
